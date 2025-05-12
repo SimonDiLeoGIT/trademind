@@ -1,26 +1,13 @@
-from typing import Union
-
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import Union
-import finnhub
-import os
-import finnhub
-import time
-import yfinance as yf
 import requests
+from fastapi import APIRouter
+from app.core.config import settings
 
-from predictor import Predictor
+TWELVE_API_KEY = settings.TWELVE_API_KEY
 
-app = FastAPI()
+router = APIRouter()
 
-# Ideally store your key in an environment variable
-API_KEY = os.getenv("TWELVE_API_KEY", "9a04cd0f7ac843b29155f97d6ef84d2a")
-
-finnhub_client = finnhub.Client(api_key=API_KEY)
-
-
-@app.get("/api/stocks/{symbol}")
+# /api/stocks/{symbol}
+@router.get("/{symbol}")
 def get_symbol_stock_price(symbol: str, interval: str = "1week", outputsize: int = 30):
     try:
 
@@ -30,7 +17,7 @@ def get_symbol_stock_price(symbol: str, interval: str = "1week", outputsize: int
             "symbol": symbol,
             "interval": interval,
             "outputsize": outputsize,
-            "apikey": API_KEY,
+            "apikey": TWELVE_API_KEY,
             "format": "JSON"
         }
 
@@ -39,17 +26,11 @@ def get_symbol_stock_price(symbol: str, interval: str = "1week", outputsize: int
 
         if "values" in data:
 
-            predictor = Predictor(data["values"])
-            predictor.preprocess()
-            predictor.train()
-            prediction = predictor.predict_next()
-            n_prediction = predictor.predict_next_n(5)
-
             return {
                 "symbol": symbol,
                 "data": data["values"],
-                "predicted_close_price_next_day": round(prediction, 2),
-                "predicted_close_price_next_5_days": [round(p, 2) for p in n_prediction]
+                "interval": interval,
+                "outputsize": outputsize
             }
 
             # return {"symbol": symbol, "data": data["values"]}
@@ -58,14 +39,16 @@ def get_symbol_stock_price(symbol: str, interval: str = "1week", outputsize: int
     except Exception as e:
         return {"error": f"An error occurred: {e}"}
     
-@app.get("/api/stocks")
+
+# /api/stocks
+@router.get("/")
 def get_symbol_stock_price():
     try:
 
         url = f"https://api.twelvedata.com/stocks"
 
         params = {
-            "apikey": API_KEY,
+            "apikey": TWELVE_API_KEY,
             "format": "JSON"
         }
 
