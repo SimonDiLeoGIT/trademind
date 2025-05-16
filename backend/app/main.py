@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# from app.api.routes import users, indices  # Importá tus routers
 from app.core.config import settings  # Configuración desde .env si usás Pydantic
 from app.services import stocks_service
+
 
 app = FastAPI(
     title="Market Index Tracker API",
