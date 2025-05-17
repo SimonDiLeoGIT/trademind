@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings  # Configuración desde .env si usás Pydantic
 from app.services import stocks_service
+from app.core.database import db
+
+from app.routers import users
 
 
 app = FastAPI(
@@ -21,8 +24,12 @@ app.add_middleware(
 
 # Incluir rutas
 app.include_router(stocks_service.router, prefix="/api/stocks", tags=["Stocks"])
-# app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(users.router)
 # app.include_router(indices.router, prefix="/api/indices", tags=["Indices"])
+
+@app.on_event("startup")
+def on_startup():
+    db.create_db_and_tables()
 
 # Puedes incluir un healthcheck
 @app.get("/")

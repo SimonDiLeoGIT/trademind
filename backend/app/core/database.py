@@ -1,21 +1,23 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
+from typing import Annotated
+from fastapi import Depends
+from sqlmodel import SQLModel, create_engine, Session
+from app.core.config import settings
 
-# Environment variables
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "portfolio_tracker_db")
+class Database:
+  def __init__(self):
+    self.database_url = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+    self.engine = create_engine(self.database_url, echo=True)  
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+  def create_db_and_tables(self):
+    SQLModel.metadata.create_all(self.engine)
 
-# Sync engine
-engine = create_engine(DATABASE_URL)
+  def get_session(self):
+    with Session(self.engine) as session:
+      yield session
 
-# Session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base for models
-Base = declarative_base()
+# Singleton instance
+db = Database()
+
+# Dependency
+# SessionDep = Annotated[Session, Depends(db.get_session)]
