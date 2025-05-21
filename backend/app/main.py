@@ -5,7 +5,9 @@ from app.services import stocks_service
 from app.core.database import db
 
 from app.routers import users
+from app.services import auth
 
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI(
     title="Market Index Tracker API",
@@ -22,9 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(SessionMiddleware, secret_key="secret")
+
 # Incluir rutas
 app.include_router(stocks_service.router, prefix="/api/stocks", tags=["Stocks"])
 app.include_router(users.router)
+app.include_router(auth.router)
 # app.include_router(indices.router, prefix="/api/indices", tags=["Indices"])
 
 @app.on_event("startup")
