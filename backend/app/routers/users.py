@@ -32,8 +32,14 @@ def get_users(session: Annotated[Session, Depends(db.get_session)], offset: int 
   users = session.exec(select(User).offset(offset).limit(limit)).all()
   return users
 
+@router.get("/me")
+def read_current_user(user=Depends(get_current_user)):
+    # user es el payload del token validado (contiene datos de Auth0, p.ej. sub, email, etc)
+    return {"user": user}
+
 @router.get("/{user_id}")
 def get_users(session: Annotated[Session, Depends(db.get_session)], user_id: int) -> User:
+
   user = session.exec(select(User).where(User.id == user_id)).first()
   return user
 
