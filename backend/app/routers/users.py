@@ -1,15 +1,19 @@
 from typing import Annotated
 
-from fastapi import Depends, APIRouter, HTTPException, Query
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from fastapi import Depends, APIRouter, HTTPException, Query, Request
+from sqlmodel import Session, select
 
 from app.core.database import db
 
+from app.core.config import settings
+
 from app.models.User import User
+
+from app.services.auth.auth import oauth
 
 
 router = APIRouter(
-  prefix="/api/users",
+  prefix="/api/v1/users",
   tags=["Users"],
   responses={404: {"description": "Not found"}},
 )
@@ -31,11 +35,6 @@ def create_user(user: User, session: Annotated[Session, Depends(db.get_session)]
 def get_users(session: Annotated[Session, Depends(db.get_session)], offset: int = 0, limit:  Annotated[int, Query(le=100)] = 100) -> list[User]:
   users = session.exec(select(User).offset(offset).limit(limit)).all()
   return users
-
-@router.get("/me")
-def read_current_user(user=Depends(get_current_user)):
-    # user es el payload del token validado (contiene datos de Auth0, p.ej. sub, email, etc)
-    return {"user": user}
 
 @router.get("/{user_id}")
 def get_users(session: Annotated[Session, Depends(db.get_session)], user_id: int) -> User:
@@ -64,3 +63,32 @@ def delete_user(user_id: int, session: Annotated[Session, Depends(db.get_session
     session.delete(user)
     session.commit()
     return {"ok": True}
+
+
+@router.post("/login")
+async def login(request: Request):
+    redirect_uri = settings.AUTH0_CALLBACK_URL
+    return await oauth.auth0.authorize_redirect(request, redirect_uri)
+
+@router.get("/callback")
+async def callback(request: Request):
+    token = await oauth.auth0.authorize_access_token(request)
+    userinfo = await oauth.auth0.parse_id_token(request, token)
+    # Save in session if needed
+    request.session["user"] = dict(userinfo)
+    return userinfo
+
+# @app.route("/logout")
+# def logout():
+#     session.clear()
+#     return redirect(
+#         "https://" + env.get("AUTH0_DOMAIN")
+#         + "/v2/logout?"
+#         + urlencode(
+#             {
+#                 "returnTo": url_for("home", _external=True),
+#                 "client_id": env.get("AUTH0_CLIENT_ID"),
+#             },
+#             quote_via=quote_plus,
+#         )
+#     )
