@@ -1,7 +1,5 @@
-# app/routers/root.py (new file or inline in the same file)
-
 from fastapi import APIRouter, Depends
-from app.services.auth.auth import validate_token, PermissionsValidator
+from app.services.authentication.json_web_token import validate_token, PermissionsValidator
 
 router = APIRouter(
   prefix="/api/v1",
@@ -13,6 +11,7 @@ router = APIRouter(
 def read_root():
     return {"status": "ok"}
 
+# The following routes are for auth0 testing
 @router.get("/public")
 def public():
     return {"text": "This is a public message."}

@@ -13,22 +13,26 @@ const Profile = () => {
       try {
         const accessToken = await getAccessTokenSilently({
           authorizationParams: {
-            // audience: `https://${domain}/api/v2/`,
             audience: import.meta.env.VITE_AUTH0_AUDIENCE,
           },
         });
 
-        const userDetailsByIdUrl = `https://${domain}/api/v2/users/${user?.sub}`;
+        console.log('accessToken', accessToken);
+        console.log('user', user);
+        // if (user) {
 
-        const metadataResponse = await fetch(userDetailsByIdUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        const { user_metadata } = await metadataResponse.json();
-
-        setUserMetadata(user_metadata);
+        //   const userDetailsByIdUrl = `https://${domain}/api/v2/users/${user.sub}`;
+          
+        //   const metadataResponse = await fetch(userDetailsByIdUrl, {
+        //     headers: {
+        //       Authorization: `Bearer ${accessToken}`,
+        //     },
+        //   });
+        //   console.log(metadataResponse)
+        //   const { user_metadata } = await metadataResponse.json();
+          
+        //   setUserMetadata(user_metadata);
+        // }
       } catch (e: any) {
         console.log(e.message);
       }

@@ -12,8 +12,8 @@ root.render(
       domain={import.meta.env.VITE_AUTH0_DOMAIN}
       clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
-        redirect_uri: window.location.origin,
-        // audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        redirect_uri: import.meta.env.VITE_AUTH0_CALLBACK_URL,
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
         // scope: "read:current_user update:current_user_metadata"
       }}
     >
